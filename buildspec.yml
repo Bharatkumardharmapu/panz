@@ -7,7 +7,7 @@ phases:
       - aws --version
       - REPOSITORY_URI=851725275253.dkr.ecr.us-east-2.amazonaws.com/demo
       - DOCKER_LOGIN_PASSWORD=$(aws ecr get-login-password  --region us-east-2)
-      - docker login -u AWS -p -stdin $DOCKER_LOGIN_PASSWORD https://851725275253.dkr.ecr.us-east-2.amazonaws.com/demo
+      - docker login -u AWS -p stdin $DOCKER_LOGIN_PASSWORD https://851725275253.dkr.ecr.us-east-2.amazonaws.com/demo
   build:
     commands:
       - echo Build started on `date`
