@@ -6,21 +6,29 @@ phases:
       - echo Logging in to Amazon ECR...
       - aws --version
       - REPOSITORY_URI=851725275253.dkr.ecr.us-east-2.amazonaws.com/demo
-      - DOCKER_LOGIN_PASSWORD=$(aws ecr get-login-password  --region us-east-2)
+      - echo "ECR Repository URI: $REPOSITORY_URI"
+      - DOCKER_LOGIN_PASSWORD=$(aws ecr get-login-password --region us-east-2)
       - echo $DOCKER_LOGIN_PASSWORD | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - echo "Docker login exit code: $?"
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t  $REPOSITORY_URI:demo-app-${CODEBUILD_BUILD_NUMBER} .
+      - docker build -t $REPOSITORY_URI:demo-app-${CODEBUILD_BUILD_NUMBER} .
+      - docker images
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Pushing the Docker images...
-      - docker push $REPOSITORY_URI:demo-app-${CODEBUILD_BUILD_NUMBER}
-      - echo writing image definitions file...
-#       - printf '[{"name":"demo","imageUri":"%s"}]' $REPOSITORY_URI:demo-ecs-app-${CODEBUILD_BUILD_NUMBER} > imagedefinitions.json
-#       - cat imagedefinitions.json 
-#       - pwd
-# artifacts:
-#     files: imagedefinitions.json
+      - echo Pushing the Docker image...
+      - docker push $REPOSITORY_URI:demo-app-${CODEBUILD_BUILD_NUMBER} || exit 1
+      - echo "Docker push exit code: $?"
+      - echo Writing image definitions file...
+      - printf '[{"name":"demo","imageUri":"%s"}]' $REPOSITORY_URI:demo-app-${CODEBUILD_BUILD_NUMBER} > imagedefinitions.json
+      - cat imagedefinitions.json
+artifacts:
+  files: imagedefinitions.json
+
+cache:
+  paths:
+    - '/root/.cache/pip'
+    - '/root/.cache/pipenv'
